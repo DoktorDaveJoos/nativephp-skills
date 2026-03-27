@@ -50,7 +50,7 @@ b) **XSRF Token** — check if CSRF middleware is still active
 c) **SQLite Tuning** — check WAL mode, cache_size, synchronous, busy_timeout in `config/database.php`
 d) **Startup Performance** — check if config/route/view caches exist
 e) **Electron Loading Page** — check if a static loading page is configured
-f) **CDN Dependencies** — scan templates, CSS, JS for external CDN references
+f) **CDN Asset Bundling** — scan templates, CSS, JS for external CDN references
 g) **PHP Extensions** — compare required extensions against NativePHP bundled extensions
 
 ## Presenting Findings

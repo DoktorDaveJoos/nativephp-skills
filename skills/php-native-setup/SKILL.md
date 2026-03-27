@@ -88,3 +88,13 @@ Scan `composer.json` and PHP source for required extensions. Cross-check against
 ## Summary
 
 After completing all seven areas, display: what was configured, what was skipped, and any warnings.
+
+## Red Flags
+
+| Temptation | Why it's wrong |
+|---|---|
+| Skip entry point detection | May corrupt a non-Laravel project |
+| Use `composer create-project` for empty directory | User should run `laravel new .` themselves |
+| Apply changes without asking | User must consent to each optimization |
+| Hardcode PHP config values | Values must be calculated from machine specs |
+| Skip areas the user didn't mention | All seven areas must be presented |
