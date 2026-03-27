@@ -22,8 +22,11 @@ digraph setup_flow {
     "Install NativePHP" [shape=box];
     "Run optimization walkthrough" [shape=doublecircle];
 
+    "Stop" [shape=doublecircle];
+
     "Skill invoked" -> "Working directory empty?";
     "Working directory empty?" -> "Tell user: run laravel new . first" [label="yes"];
+    "Tell user: run laravel new . first" -> "Stop";
     "Working directory empty?" -> "artisan + composer.json exist?" [label="no"];
     "artisan + composer.json exist?" -> "Not a Laravel project — stop" [label="no"];
     "artisan + composer.json exist?" -> "nativephp/electron in composer.json?" [label="yes"];
@@ -52,32 +55,36 @@ Verify installation succeeded before continuing.
 
 ## Optimization Walkthrough
 
-Present each area ONE AT A TIME. Wait for user decision before proceeding. Cover all six in order -- do not skip any.
+Present each area ONE AT A TIME. Wait for user decision before proceeding. Cover all seven in order -- do not skip any.
 
 ### a) PHP Configuration
 
-Inspect machine specs: `sysctl -n hw.memsize` (macOS) or `cat /proc/meminfo` (Linux) for RAM; `sysctl -n hw.ncpu` or `nproc` for cores. Calculate: memory_limit = RAM/4 capped at 2G, max_execution_time = 300+, increase post_max_size and upload_max_filesize. Show current vs proposed with reasoning.
+Inspect machine specs (RAM, CPU cores). Propose desktop-appropriate values for `memory_limit`, `max_execution_time`, `post_max_size`, `upload_max_filesize`. Show current value, proposed value, and reasoning. Wait for user decision.
 
 ### b) XSRF Token
 
-Check middleware in `app/Http/Kernel.php` or `bootstrap/app.php` (depends on Laravel version). Desktop apps have no cross-site risk. Offer to remove/disable CSRF middleware.
+Check if CSRF middleware is active. Explain why desktop apps have no cross-site risk. Offer to remove/disable it. Wait for user decision.
 
 ### c) SQLite Tuning
 
-In `config/database.php`, propose: `journal_mode=wal`, `synchronous=normal`, `cache_size=-20000`, `busy_timeout=5000`. Explain each setting briefly.
+Check `config/database.php`. Propose desktop-optimized pragmas (WAL mode, relaxed synchronous, larger cache, busy timeout). Explain each briefly. Wait for user decision.
 
 ### d) Startup Performance
 
-Run `config:cache`, `route:cache`, `view:cache`. Check for Octane. Ask user what to display on the loading page (app name, logo, spinner). Generate `loading.html` for Electron and wire it into the NativePHP window configuration.
+Propose running `config:cache`, `route:cache`, `view:cache`. Check for Laravel Octane. Present and wait for user decision.
 
-### e) CDN Asset Bundling
+### e) Electron Loading Page
 
-Scan `resources/` for CDN URLs: `fonts.googleapis.com`, `cdn.*`, `unpkg.com`, `cdnjs.cloudflare.com`, and any `.css`/`.js`/`.woff2`/`.ttf`/`.eot` URLs. Present each reference found. Download and bundle locally if user approves. Desktop apps may run offline.
+This is a separate decision from caching. The Electron window should open immediately with a static page instead of waiting for PHP to boot. Ask the user what to display (app name, logo, spinner, custom content). Generate `loading.html` and wire it into the NativePHP window configuration. Wait for user decision.
 
-### f) PHP Extensions
+### f) CDN Asset Bundling
 
-Scan `composer.json` for `ext-*` requirements. Scan PHP files for extension-specific functions. Cross-check against NativePHP build config. Verify essentials: sqlite3, pdo_sqlite, mbstring, openssl, fileinfo, json, tokenizer, xml, curl, dom, zip. Flag anything missing.
+Scan templates and assets for external CDN references (fonts, CSS, JS, icons). Present each found reference. Offer to download and bundle locally — desktop apps may run without internet. Wait for user decision.
+
+### g) PHP Extensions
+
+Scan `composer.json` and PHP source for required extensions. Cross-check against NativePHP build config and essential extension list. Flag anything missing. Wait for user decision.
 
 ## Summary
 
-After completing all six areas, display: what was configured, what was skipped, and any warnings.
+After completing all seven areas, display: what was configured, what was skipped, and any warnings.
