@@ -9,7 +9,7 @@ Agent skills for setting up and auditing Laravel + NativePHP Desktop v2 applicat
 ## Quick Start
 
 ```bash
-npx skills add <owner>/php-native-skills
+npx skills@latest add DoktorDaveJoos/nativephp-skills
 ```
 
 Then run `/php-native-setup` to set up a new project or `/php-native-audit` to check an existing one.
@@ -292,7 +292,7 @@ Both are fully supported. The setup skill asks which backend you want if neither
 
 Found a missing optimization area? Open an issue or PR.
 
-The skills are markdown files in `skills/` — easy to read, review, and extend. Design rationale and decisions are documented in `docs/superpowers/specs/`. If you want to understand why the skills work the way they do, start there.
+The skills are markdown files in `php-native-setup/` and `php-native-audit/` — easy to read, review, and extend. Design rationale and decisions are documented in `docs/superpowers/specs/`. If you want to understand why the skills work the way they do, start there.
 
 To validate changes, test both skills against a real Laravel + NativePHP project. The `docs/superpowers/tests/` directory contains baseline test results showing how agents behave without the skills — useful context for understanding what each instruction in the skills is correcting.
 
