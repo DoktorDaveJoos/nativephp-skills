@@ -1,5 +1,5 @@
 ---
-name: php-native-audit
+name: nativephp-audit
 description: "Use when auditing an existing Laravel + NativePHP Desktop v2 app for performance and desktop optimization issues in the current working directory"
 ---
 

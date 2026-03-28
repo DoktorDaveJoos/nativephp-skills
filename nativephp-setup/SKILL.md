@@ -1,5 +1,5 @@
 ---
-name: php-native-setup
+name: nativephp-setup
 description: "Use when starting a new Laravel + NativePHP Desktop v2 app or adding NativePHP to an existing Laravel project in the current working directory"
 ---
 

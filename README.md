@@ -12,15 +12,15 @@ Agent skills for setting up and auditing Laravel + NativePHP Desktop v2 applicat
 npx skills@latest add DoktorDaveJoos/nativephp-skills
 ```
 
-Then run `/php-native-setup` to set up a new project or `/php-native-audit` to check an existing one.
+Then run `/nativephp-setup` to set up a new project or `/nativephp-audit` to check an existing one.
 
 ## Table of Contents
 
 - [Why These Skills Exist](#why-these-skills-exist)
 - [Why Not Just Ask the AI?](#why-not-just-ask-the-ai)
 - [Skills](#skills)
-  - [/php-native-setup](#php-native-setup)
-  - [/php-native-audit](#php-native-audit)
+  - [/nativephp-setup](#nativephp-setup)
+  - [/nativephp-audit](#nativephp-audit)
 - [The 9 Optimization Areas](#the-9-optimization-areas)
 - [Supported Platforms](#supported-platforms)
 - [Requirements](#requirements)
@@ -62,7 +62,7 @@ The content knowledge is already there. The interaction model is what these skil
 
 ## Skills
 
-### `/php-native-setup`
+### `/nativephp-setup`
 
 **Use when:** Starting a new Laravel + NativePHP desktop app or adding NativePHP to an existing Laravel project.
 
@@ -79,7 +79,7 @@ Then it walks through all 9 optimization areas one by one, explaining each chang
 
 **Example interaction:**
 
-> `/php-native-setup`
+> `/nativephp-setup`
 >
 > Found a Laravel 12 project with `nativephp/electron` installed.
 > Skipping installation — going straight to optimization.
@@ -98,7 +98,7 @@ Then it walks through all 9 optimization areas one by one, explaining each chang
 > **b) Middleware Cleanup**
 > `VerifyCsrfToken` is active. Desktop apps have no cross-site context — this middleware adds friction without security benefit. Remove it?
 
-### `/php-native-audit`
+### `/nativephp-audit`
 
 **Use when:** You have an existing Laravel + NativePHP project and want to check if it's optimized for desktop use.
 
@@ -113,7 +113,7 @@ It's designed to be re-run periodically. After adding new dependencies, pulling 
 
 **Example interaction:**
 
-> `/php-native-audit`
+> `/nativephp-audit`
 >
 > Verified: Laravel 12 + NativePHP Desktop (Electron). Scanning...
 >
@@ -292,7 +292,7 @@ Both are fully supported. The setup skill asks which backend you want if neither
 
 Found a missing optimization area? Open an issue or PR.
 
-The skills are markdown files in `php-native-setup/` and `php-native-audit/` — easy to read, review, and extend. Design rationale and decisions are documented in `docs/superpowers/specs/`. If you want to understand why the skills work the way they do, start there.
+The skills are markdown files in `nativephp-setup/` and `nativephp-audit/` — easy to read, review, and extend. Design rationale and decisions are documented in `docs/superpowers/specs/`. If you want to understand why the skills work the way they do, start there.
 
 To validate changes, test both skills against a real Laravel + NativePHP project. The `docs/superpowers/tests/` directory contains baseline test results showing how agents behave without the skills — useful context for understanding what each instruction in the skills is correcting.
 
