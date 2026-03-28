@@ -1,6 +1,34 @@
 # PHP Native Skills
 
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![NativePHP Desktop v2](https://img.shields.io/badge/NativePHP-Desktop%20v2-orange.svg)](https://nativephp.com)
+[![Laravel 10|11|12+](https://img.shields.io/badge/Laravel-10%20%7C%2011%20%7C%2012%2B-red.svg)](https://laravel.com)
+
 Agent skills for setting up and auditing Laravel + NativePHP Desktop v2 applications. These skills guide AI coding agents through desktop-specific optimizations that Laravel's web-first defaults don't account for.
+
+## Quick Start
+
+```bash
+npx skills add <owner>/php-native-skills
+```
+
+Then run `/php-native-setup` to set up a new project or `/php-native-audit` to check an existing one.
+
+## Table of Contents
+
+- [Why These Skills Exist](#why-these-skills-exist)
+- [Why Not Just Ask the AI?](#why-not-just-ask-the-ai)
+- [Skills](#skills)
+  - [/php-native-setup](#php-native-setup)
+  - [/php-native-audit](#php-native-audit)
+- [The 9 Optimization Areas](#the-9-optimization-areas)
+- [Supported Platforms](#supported-platforms)
+- [Requirements](#requirements)
+- [How It Works](#how-it-works)
+- [Design Principles](#design-principles)
+- [FAQ](#faq)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Why These Skills Exist
 
@@ -15,13 +43,22 @@ Laravel and PHP are configured for shared web servers by default. When you build
 
 These skills encode all of this knowledge into a guided, conversational workflow so you don't have to remember it yourself.
 
-## Installation
+## Why Not Just Ask the AI?
 
-```bash
-npx skills add <owner>/php-native-skills
-```
+AI coding agents already know most of the individual optimizations. What they lack is structure. We tested agents without these skills and found consistent gaps:
 
-This installs both skills into your project. They're available as slash commands in any AI coding agent that supports the [Agent Skills](https://agentskills.io) standard (Claude Code, Cursor, GitHub Copilot, VS Code, and others).
+| Without the skill | With the skill |
+|---|---|
+| Jumps straight into recommendations | Detects project state first (empty dir, Laravel only, NativePHP installed, Mobile) |
+| Uses `composer create-project` for new projects | Enforces `laravel new .` to respect Laravel's interactive installer |
+| Dumps all recommendations as a knowledge dump | Presents one area at a time, waits for your decision |
+| Offers "fix all" batch approval | Requires informed consent per change |
+| Audit produces a tiered report (Critical/Suboptimal/Advisory) | Audit is a conversation: scan silently, present only what needs attention |
+| Lists correctly-configured areas to "build trust" | Skips what's already fine — doesn't waste your time |
+| Buries loading page in startup performance | Makes the loading page a distinct, actionable step |
+| Leaves detection to agent judgment | Provides exact detection commands for consistent results |
+
+The content knowledge is already there. The interaction model is what these skills enforce.
 
 ## Skills
 
@@ -40,6 +77,27 @@ The setup skill detects your project's current state and adapts:
 
 Then it walks through all 9 optimization areas one by one, explaining each change and waiting for your approval before applying anything.
 
+**Example interaction:**
+
+> `/php-native-setup`
+>
+> Found a Laravel 12 project with `nativephp/electron` installed.
+> Skipping installation — going straight to optimization.
+>
+> **a) PHP Configuration**
+> Your current `memory_limit` is `128M`. What kind of workload does this app handle — simple CRUD, file processing, image manipulation?
+>
+> *It processes CSV imports up to 50MB.*
+>
+> For large file imports, `512M` is reasonable. I'll add `ini_set('memory_limit', '512M')` to `AppServiceProvider::boot()`. Apply this change?
+>
+> *Yes.*
+>
+> Done. Next up:
+>
+> **b) Middleware Cleanup**
+> `VerifyCsrfToken` is active. Desktop apps have no cross-site context — this middleware adds friction without security benefit. Remove it?
+
 ### `/php-native-audit`
 
 **Use when:** You have an existing Laravel + NativePHP project and want to check if it's optimized for desktop use.
@@ -53,15 +111,58 @@ The audit skill works differently from setup:
 
 It's designed to be re-run periodically. After adding new dependencies, pulling in a package that uses a CDN, or updating Laravel — run the audit again.
 
+**Example interaction:**
+
+> `/php-native-audit`
+>
+> Verified: Laravel 12 + NativePHP Desktop (Electron). Scanning...
+>
+> Found 2 areas needing attention. 7 areas are already optimally configured.
+>
+> **CDN Asset Bundling**
+> Currently: Google Fonts loaded from `fonts.googleapis.com` in `resources/views/layouts/app.blade.php:12`
+> Recommended: Download and bundle locally
+> Rationale: Desktop apps must work offline. CDN fonts fail silently when the user has no internet connection.
+> Apply this change?
+>
+> *Yes.*
+>
+> Downloaded Inter font family to `public/fonts/`. Updated `@font-face` declarations to reference local files.
+>
+> **Service Drivers**
+> Currently: Queue driver set to `redis` in `config/queue.php`
+> Recommended: Switch to `sync` or `database`
+> Rationale: Redis won't be available on the end user's machine.
+> Apply this change?
+>
+> *Switch to database.*
+>
+> Done. Here's your summary:
+> - **Applied:** CDN Asset Bundling (Google Fonts bundled locally), Service Drivers (queue: `redis` → `database`)
+> - **Already optimal:** PHP Configuration, Middleware, SQLite Tuning, Loading Page, PHP Extensions, Build Optimization, Laravel Octane
+> - **Skipped:** none
+
 ## The 9 Optimization Areas
 
 Both skills cover the same areas with consistent naming and logic:
 
-### a) PHP Configuration
+| # | Area | What it optimizes |
+|---|------|-------------------|
+| a | [PHP Configuration](#a-php-configuration) | Memory and execution limits for desktop context |
+| b | [Middleware Cleanup](#b-middleware-cleanup) | Removes web-only middleware (CSRF, maintenance, proxies) |
+| c | [SQLite Tuning](#c-sqlite-tuning) | WAL mode, cache, sync settings for single-user |
+| d | [Service Drivers](#d-service-drivers) | Replaces cloud services with local alternatives |
+| e | [Loading Page](#e-loading-page) | Instant visual feedback while PHP boots |
+| f | [CDN Asset Bundling](#f-cdn-asset-bundling) | Downloads external assets for offline use |
+| g | [PHP Extensions](#g-php-extensions) | Ensures required extensions are bundled |
+| h | [Build Optimization](#h-build-optimization) | OPcache, autoloader, Laravel caches for production |
+| i | [Laravel Octane](#i-laravel-octane) | In-memory application for faster requests |
+
+#### a) PHP Configuration
 
 Checks `memory_limit` and `max_execution_time`. Doesn't blindly set values — asks about your app's workload first. A simple CRUD app might be fine with defaults; an app that processes images or imports large datasets needs more headroom. Changes are applied via `ini_set()` in a service provider so they work in both development and production builds.
 
-### b) Middleware Cleanup
+#### b) Middleware Cleanup
 
 Desktop apps don't need web-server middleware. The skills check for and offer to remove:
 
@@ -73,7 +174,7 @@ Desktop apps don't need web-server middleware. The skills check for and offer to
 
 Handles both Laravel 10-11 (`app/Http/Kernel.php`) and Laravel 12+ (`bootstrap/app.php`) middleware registration by checking the `laravel/framework` version in `composer.json`.
 
-### c) SQLite Tuning
+#### c) SQLite Tuning
 
 NativePHP apps use SQLite — the right choice for single-user desktop. But SQLite's defaults are conservative for multi-user scenarios you'll never have. The skills propose these pragmas:
 
@@ -88,7 +189,7 @@ NativePHP apps use SQLite — the right choice for single-user desktop. But SQLi
 
 On Laravel 12+, these go in the native `pragmas` array in `config/database.php`. On Laravel 10-11, they're set as individual keys in the SQLite connection config.
 
-### d) Service Drivers
+#### d) Service Drivers
 
 Laravel defaults to Redis, Pusher, and cloud mail services that won't exist on a user's desktop. The skills check and propose desktop-appropriate alternatives:
 
@@ -98,7 +199,7 @@ Laravel defaults to Redis, Pusher, and cloud mail services that won't exist on a
 | Broadcasting | `pusher` | `log` or `null` |
 | Mail | Cloud provider | `log` or local `smtp` |
 
-### e) Loading Page
+#### e) Loading Page
 
 NativePHP has no built-in desktop splash screen. Without a loading page, the Electron/Tauri window sits blank while PHP boots — users think the app is broken.
 
@@ -106,7 +207,7 @@ The skills create a dedicated `/loading` route with `Window::open()->route('load
 
 You choose what to display: app name, logo, spinner, custom content.
 
-### f) CDN Asset Bundling
+#### f) CDN Asset Bundling
 
 Desktop apps must work offline. Any CDN reference is a liability. The skills scan:
 
@@ -115,7 +216,7 @@ Desktop apps must work offline. Any CDN reference is a liability. The skills sca
 
 For each found reference, the skills present it and offer to download and bundle locally. After bundling fonts, they verify that `@font-face` declarations point to the local files.
 
-### g) PHP Extensions
+#### g) PHP Extensions
 
 A missing PHP extension in the packaged app means a broken app with no fix for the end user. The skills:
 
@@ -124,7 +225,7 @@ A missing PHP extension in the packaged app means a broken app with no fix for t
 3. Cross-check against the `php_extensions` list in `config/nativephp.php`
 4. Flag any required extension that isn't configured for bundling
 
-### h) Build Optimization
+#### h) Build Optimization
 
 These optimizations belong in the **build/packaging pipeline**, not in development:
 
@@ -134,7 +235,7 @@ These optimizations belong in the **build/packaging pipeline**, not in developme
 
 The skills help wire these into your build script. They explicitly do NOT run them during development setup (cached config hides changes and causes confusion during dev).
 
-### i) Laravel Octane
+#### i) Laravel Octane
 
 Octane keeps the Laravel application in memory between requests, eliminating bootstrap overhead on every request. The skills check if it's installed and suggest adding it if not — with an explanation of the tradeoffs.
 
@@ -154,9 +255,9 @@ Octane keeps the Laravel application in memory between requests, eliminating boo
 
 ## How It Works
 
-These skills are markdown files that AI coding agents load and follow. They don't contain executable code — they contain structured instructions that guide the agent through a decision-making process with you in control.
+These skills are markdown files that AI coding agents load and follow. They're built on the [Agent Skills](https://agentskills.io) standard — a way to package domain knowledge as structured instructions that compatible editors load into the AI's context when you invoke them via slash commands.
 
-The agent reads the skill, runs the detection logic, checks your project's current state, and walks you through each optimization area. You decide what to change. Nothing is applied without your explicit consent.
+The skills don't contain executable code. The agent reads the skill, runs the detection logic, checks your project's current state, and walks you through each optimization area. You decide what to change. Nothing is applied without your explicit consent.
 
 ## Design Principles
 
@@ -167,9 +268,33 @@ The agent reads the skill, runs the detection logic, checks your project's curre
 - **Dev vs production.** Build optimizations go in the build pipeline, not in your development workflow.
 - **Professional tone.** Clear explanations, not chatty or alarmist. Like a consultant's recommendation.
 
+## FAQ
+
+**Can I run the audit on a project I already set up with the setup skill?**
+Yes. The audit scans current state and skips anything already optimized. It's designed to be re-run after adding dependencies, pulling in new packages, or updating Laravel.
+
+**What if I decline a recommendation?**
+It's skipped and noted in the summary. No changes are made. You can re-run the skill later if you change your mind.
+
+**Do these work with NativePHP Mobile v3?**
+No. Mobile has a different architecture and different optimization needs. Both skills detect Mobile and stop with a clear message.
+
+**What Laravel versions are supported?**
+10, 11, and 12+. The skills detect your version and adapt — middleware location (`Kernel.php` vs `bootstrap/app.php`) and SQLite pragma syntax change between versions.
+
+**Are any code changes made without my permission?**
+No. Every change is presented with its rationale and requires your explicit consent before applying. You can approve, decline, or modify each recommendation.
+
+**What if my project uses Tauri instead of Electron?**
+Both are fully supported. The setup skill asks which backend you want if neither is installed. The audit skill detects whichever is present and proceeds.
+
 ## Contributing
 
-Found a missing optimization area? Open an issue or PR. The skills are just markdown files in `skills/` — easy to read, review, and extend.
+Found a missing optimization area? Open an issue or PR.
+
+The skills are markdown files in `skills/` — easy to read, review, and extend. Design rationale and decisions are documented in `docs/superpowers/specs/`. If you want to understand why the skills work the way they do, start there.
+
+To validate changes, test both skills against a real Laravel + NativePHP project. The `docs/superpowers/tests/` directory contains baseline test results showing how agents behave without the skills — useful context for understanding what each instruction in the skills is correcting.
 
 ## License
 
