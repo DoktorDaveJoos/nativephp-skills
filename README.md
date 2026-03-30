@@ -21,7 +21,7 @@ Then run `/nativephp-setup` to set up a new project or `/nativephp-audit` to che
 - [Skills](#skills)
   - [/nativephp-setup](#nativephp-setup)
   - [/nativephp-audit](#nativephp-audit)
-- [The 9 Optimization Areas](#the-9-optimization-areas)
+- [The 8 Optimization Areas](#the-8-optimization-areas)
 - [Supported Platforms](#supported-platforms)
 - [Requirements](#requirements)
 - [How It Works](#how-it-works)
@@ -38,7 +38,7 @@ Laravel and PHP are configured for shared web servers by default. When you build
 - **CSRF protection is pointless.** There's no cross-site anything in a desktop app. The middleware just adds friction.
 - **SQLite is undertuned.** Conservative defaults protect against multi-user concurrency you'll never have. WAL mode, relaxed synchronous, and bigger caches make a real difference.
 - **External dependencies break offline.** Google Fonts from a CDN? Works in dev, fails silently when the user has no internet. Desktop apps must bundle everything.
-- **Startup feels slow.** Without a loading page, the Electron window sits blank while PHP boots. Users think the app is broken.
+- **Startup feels slow.** NativePHP hides the window until content loads — no blank screen, but no visible window either. Without a loading page, the user sees nothing but a dock icon while PHP boots.
 - **Missing extensions crash the app.** A PHP extension that's available in development but not bundled in the NativePHP build means a broken app with no fix for the end user.
 
 These skills encode all of this knowledge into a guided, conversational workflow so you don't have to remember it yourself.
@@ -75,7 +75,7 @@ The setup skill detects your project's current state and adapts:
 | Laravel + NativePHP | Skips installation, goes straight to optimization |
 | NativePHP Mobile | Stops — these skills are for Desktop v2 only |
 
-Then it walks through all 9 optimization areas one by one, explaining each change and waiting for your approval before applying anything.
+Then it walks through all 8 optimization areas one by one, explaining each change and waiting for your approval before applying anything.
 
 **Example interaction:**
 
@@ -104,7 +104,7 @@ Then it walks through all 9 optimization areas one by one, explaining each chang
 
 The audit skill works differently from setup:
 
-1. **Scans silently** — checks all 9 areas without printing anything
+1. **Scans silently** — checks all 8 areas without printing anything
 2. **Filters** — skips areas already optimally configured
 3. **Presents findings one at a time** — professional tone, clear rationale, your decision on each
 4. **Summarizes** — what was changed, what was already fine, what you skipped
@@ -117,7 +117,7 @@ It's designed to be re-run periodically. After adding new dependencies, pulling 
 >
 > Verified: Laravel 12 + NativePHP Desktop (Electron). Scanning...
 >
-> Found 2 areas needing attention. 7 areas are already optimally configured.
+> Found 2 areas needing attention. 6 areas are already optimally configured.
 >
 > **CDN Asset Bundling**
 > Currently: Google Fonts loaded from `fonts.googleapis.com` in `resources/views/layouts/app.blade.php:12`
@@ -139,10 +139,10 @@ It's designed to be re-run periodically. After adding new dependencies, pulling 
 >
 > Done. Here's your summary:
 > - **Applied:** CDN Asset Bundling (Google Fonts bundled locally), Service Drivers (queue: `redis` → `database`)
-> - **Already optimal:** PHP Configuration, Middleware, SQLite Tuning, Loading Page, PHP Extensions, Build Optimization, Laravel Octane
+> - **Already optimal:** PHP Configuration, Middleware, SQLite Tuning, Loading Page, PHP Extensions, Build Optimization
 > - **Skipped:** none
 
-## The 9 Optimization Areas
+## The 8 Optimization Areas
 
 Both skills cover the same areas with consistent naming and logic:
 
@@ -152,11 +152,10 @@ Both skills cover the same areas with consistent naming and logic:
 | b | [Middleware Cleanup](#b-middleware-cleanup) | Removes web-only middleware (CSRF, maintenance, proxies) |
 | c | [SQLite Tuning](#c-sqlite-tuning) | WAL mode, cache, sync settings for single-user |
 | d | [Service Drivers](#d-service-drivers) | Replaces cloud services with local alternatives |
-| e | [Loading Page](#e-loading-page) | Instant visual feedback while PHP boots |
+| e | [Loading Page](#e-loading-page) | Reduces perceived startup time with instant visual feedback |
 | f | [CDN Asset Bundling](#f-cdn-asset-bundling) | Downloads external assets for offline use |
 | g | [PHP Extensions](#g-php-extensions) | Ensures required extensions are bundled |
 | h | [Build Optimization](#h-build-optimization) | OPcache, autoloader, Laravel caches for production |
-| i | [Laravel Octane](#i-laravel-octane) | In-memory application for faster requests |
 
 #### a) PHP Configuration
 
@@ -201,9 +200,9 @@ Laravel defaults to Redis, Pusher, and cloud mail services that won't exist on a
 
 #### e) Loading Page
 
-NativePHP has no built-in desktop splash screen. Without a loading page, the Electron/Tauri window sits blank while PHP boots — users think the app is broken.
+NativePHP creates every `BrowserWindow` with `show: false` and waits for `did-finish-load` before showing it — so there's never a blank window. But there's also no window at all during startup (just a dock/taskbar icon), which can feel slow on heavier apps.
 
-The skills create a dedicated `/loading` route with `Window::open()->route('loading')` in `NativeAppServiceProvider`. The view is a lightweight Blade template with inline CSS only (no Vite, no external assets) so it renders near-instantly. JavaScript redirects to the main app route when ready.
+A lightweight `/loading` route makes the window appear faster: it loads instantly (inline HTML, no Vite, no external assets), giving the user immediate visual feedback while the main app bootstraps. The skills create a dedicated `/loading` route with `Window::open()->route('loading')` in `NativeAppServiceProvider`. JavaScript redirects to the main app route when ready.
 
 You choose what to display: app name, logo, spinner, custom content.
 
@@ -234,10 +233,6 @@ These optimizations belong in the **build/packaging pipeline**, not in developme
 - **Laravel caches** — `config:cache`, `route:cache`, `view:cache`
 
 The skills help wire these into your build script. They explicitly do NOT run them during development setup (cached config hides changes and causes confusion during dev).
-
-#### i) Laravel Octane
-
-Octane keeps the Laravel application in memory between requests, eliminating bootstrap overhead on every request. The skills check if it's installed and suggest adding it if not — with an explanation of the tradeoffs.
 
 ## Supported Platforms
 

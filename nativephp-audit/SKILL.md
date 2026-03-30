@@ -20,7 +20,7 @@ digraph audit_flow {
     "Not a Laravel project — stop" [shape=octagon, style=filled, fillcolor=red, fontcolor=white];
     "Desktop only — stop" [shape=octagon, style=filled, fillcolor=red, fontcolor=white];
     "Not a NativePHP project — stop" [shape=octagon, style=filled, fillcolor=red, fontcolor=white];
-    "Silent scan all 9 areas" [shape=box];
+    "Silent scan all 8 areas" [shape=box];
     "Findings need attention?" [shape=diamond];
     "All optimized — report clean bill" [shape=doublecircle];
     "Present findings one-by-one" [shape=box];
@@ -32,8 +32,8 @@ digraph audit_flow {
     "nativephp/mobile detected?" -> "Desktop only — stop" [label="yes"];
     "nativephp/mobile detected?" -> "nativephp/electron or tauri in composer.json?" [label="no"];
     "nativephp/electron or tauri in composer.json?" -> "Not a NativePHP project — stop" [label="no"];
-    "nativephp/electron or tauri in composer.json?" -> "Silent scan all 9 areas" [label="yes"];
-    "Silent scan all 9 areas" -> "Findings need attention?";
+    "nativephp/electron or tauri in composer.json?" -> "Silent scan all 8 areas" [label="yes"];
+    "Silent scan all 8 areas" -> "Findings need attention?";
     "Findings need attention?" -> "All optimized — report clean bill" [label="no"];
     "Findings need attention?" -> "Present findings one-by-one" [label="yes"];
     "Present findings one-by-one" -> "Display summary";
@@ -47,7 +47,7 @@ digraph audit_flow {
 
 ## Silent Scan
 
-Scan ALL nine areas before showing anything to the user. Collect findings into a list. Do not print progress or intermediate results.
+Scan ALL eight areas before showing anything to the user. Collect findings into a list. Do not print progress or intermediate results.
 
 ### Areas
 
@@ -55,11 +55,10 @@ a) **PHP Configuration** — check `memory_limit` and `max_execution_time` value
 b) **Middleware Cleanup** — check for active CSRF, `PreventRequestsDuringMaintenance`, `TrustProxies` middleware
 c) **SQLite Tuning** — check WAL mode, synchronous, cache_size, busy_timeout, mmap_size, temp_store in `config/database.php`
 d) **Service Drivers** — check queue, broadcasting, mail drivers for external service dependencies (redis, pusher, cloud mail)
-e) **Loading Page** — check if a dedicated `/loading` route exists with a lightweight Blade view
+e) **Loading Page** — check if a dedicated `/loading` route exists to reduce perceived startup time (NativePHP hides the window until `did-finish-load`, so without a loading route there's no visible window during bootstrap)
 f) **CDN Asset Bundling** — scan `resources/` (Blade, CSS) and `tailwind.config.js` for external CDN references including fonts
 g) **PHP Extensions** — compare required extensions against `config/nativephp.php` `php_extensions` list
 h) **Build Optimization** — check if build pipeline includes OPcache preloading, Composer classmap optimization, config/route/view caching
-i) **Laravel Octane** — check if `laravel/octane` is installed
 
 ## Presenting Findings
 

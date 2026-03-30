@@ -62,7 +62,7 @@ Verify installation succeeded before continuing.
 
 ## Optimization Walkthrough
 
-Present each group ONE AT A TIME. Within each group, get per-item consent. Cover all nine groups in order — do not skip any.
+Present each group ONE AT A TIME. Within each group, get per-item consent. Cover all eight groups in order — do not skip any.
 
 ### a) PHP Configuration
 
@@ -97,7 +97,7 @@ Check `config/queue.php`, `config/broadcasting.php`, `config/mail.php`. Desktop 
 
 ### e) Loading Page
 
-NativePHP has no built-in desktop splash screen. Create a dedicated `/loading` route with `Window::open()->route('loading')` in `NativeAppServiceProvider`. The view should be a lightweight Blade template with inline CSS only (no Vite, no external assets) so it renders near-instantly. Ask the user what to display (app name, logo, spinner, custom content). Add JavaScript to redirect to the main app route when ready.
+NativePHP creates every `BrowserWindow` with `show: false` and waits for `did-finish-load` before showing it — so there's never a blank window. But there's also no window at all during startup (just a dock/taskbar icon), which can feel slow. A lightweight `/loading` route makes the window appear faster: it loads instantly (inline HTML, no Vite, no external assets), then redirects to the main app route when ready. Create a dedicated `/loading` route with `Window::open()->route('loading')` in `NativeAppServiceProvider`. The view should be a lightweight Blade template with inline CSS only. Ask the user what to display (app name, logo, spinner, custom content). Add JavaScript to redirect to the main app route when ready.
 
 ### f) CDN Asset Bundling
 
@@ -117,13 +117,9 @@ These belong in the build/packaging pipeline, NOT in the development workflow. H
 
 Do not run these during development setup.
 
-### i) Laravel Octane
-
-Check if `laravel/octane` is installed (`grep "laravel/octane" composer.json`). If not present, explain the benefit: Octane keeps the Laravel application in memory between requests, eliminating bootstrap overhead. Ask if the user wants to add it.
-
 ## Summary
 
-After completing all nine groups, display: what was configured, what was skipped, and any warnings.
+After completing all eight groups, display: what was configured, what was skipped, and any warnings.
 
 ## Red Flags
 
@@ -133,5 +129,5 @@ After completing all nine groups, display: what was configured, what was skipped
 | Use `composer create-project` for empty directory | User should run `laravel new .` themselves |
 | Apply changes without asking | User must consent to each optimization |
 | Blindly propose PHP config values | Must be context-dependent based on app workload |
-| Skip groups the user didn't mention | All nine groups must be presented |
+| Skip groups the user didn't mention | All eight groups must be presented |
 | Run cache commands during dev setup | Caching belongs in the build pipeline |
